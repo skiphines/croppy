@@ -73,6 +73,9 @@ abstract class CroppyLocalizations {
   /// en: "Cancel"
   String get cancelLabel;
 
+  /// en: "Apply"
+  String get applyLabel;
+
   /// en: "FREEFORM"
   String get cupertinoFreeformAspectRatioLabel;
 

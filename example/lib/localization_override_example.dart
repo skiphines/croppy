@@ -26,6 +26,9 @@ class CroppyLocalizationsPirateEn extends CroppyLocalizations {
   CroppyLocalizationsPirateEn() : super('en');
 
   @override
+  String get applyLabel => 'Aye';
+
+  @override
   String get cancelLabel => 'Scuttle';
 
   @override
