@@ -30,13 +30,18 @@ import 'package:flutter/cupertino.dart';
 /// the user can perform. If not provided, the user can apply any
 /// transformations. See [Transformation] for a list of every transformation.
 ///
+/// Use the [transformationOrder] to reorder the Cupertino transformation
+/// controls. Unsupported transformations are ignored, and any enabled
+/// Cupertino controls omitted from this list are appended in their default
+/// order.
+///
 /// [shouldPopAfterCrop] defines whether the page should be popped after the
 /// image has been cropped. If you want to control how the page is popped, set
 /// this to false and pop the page yourself using the [Navigator].
 ///
 /// The [locale] is used to localize the UI. If not provided, the locale from
 /// the [WidgetsApp] is used.
-/// 
+///
 /// [showGestureHandlesOn] controls which crop shape types should show crop
 /// handles. By default, only AABB (rectangular) crop shapes show crop handles.
 ///
@@ -51,6 +56,7 @@ Future<CropImageResult?> showCupertinoImageCropper(
   CropShapeFn? cropPathFn,
   List<CropAspectRatio?>? allowedAspectRatios,
   List<Transformation>? enabledTransformations,
+  List<Transformation>? transformationOrder,
   Object? heroTag,
   bool shouldPopAfterCrop = true,
   Locale? locale,
@@ -86,6 +92,7 @@ Future<CropImageResult?> showCupertinoImageCropper(
           shouldPopAfterCrop: shouldPopAfterCrop,
           themeData: themeData,
           showGestureHandlesOn: showGestureHandlesOn,
+          transformationOrder: transformationOrder,
         ),
       ),
     );

@@ -69,6 +69,28 @@ final result = await showCupertinoImageCropper(
 
 Voilà! You can now start cropping images.
 
+If you want to customize the order of the Cupertino transformation controls,
+pass `transformationOrder`. Any enabled Cupertino-only controls omitted from
+the list will be appended in the default order.
+
+```dart
+final result = await showCupertinoImageCropper(
+  context,
+  imageProvider: const NetworkImage('MY_IMAGE_URL'),
+  transformationOrder: const [
+    Transformation.rotateZ,
+    Transformation.rotateX,
+    Transformation.rotateY,
+    Transformation.homography,
+    Transformation.stretchX,
+    Transformation.stretchY,
+  ],
+);
+```
+
+If you're using `showAdaptiveImageCropper`, the equivalent parameter is
+`cupertinoTransformationOrder`.
+
 For a complete runnable example, see `./example`. For the full in-depth documentation, including customization, see the [documentation](./doc/doc.md).
 
 ## Localization

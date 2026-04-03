@@ -6,6 +6,7 @@ class CropSettings {
   CropSettings({
     required this.cropShapeFn,
     required this.enabledTransformations,
+    required this.cupertinoTransformationOrder,
     required this.forcedAspectRatio,
     required this.showGestureHandlesOn,
     this.locale = const Locale('en'),
@@ -15,12 +16,21 @@ class CropSettings {
       : this(
           cropShapeFn: aabbCropShapeFn,
           enabledTransformations: Transformation.values,
+          cupertinoTransformationOrder: const [
+            Transformation.rotateZ,
+            Transformation.rotateX,
+            Transformation.rotateY,
+            Transformation.homography,
+            Transformation.stretchX,
+            Transformation.stretchY,
+          ],
           showGestureHandlesOn: [CropShapeType.aabb],
           forcedAspectRatio: null,
         );
 
   final CropShapeFn cropShapeFn;
   final List<Transformation> enabledTransformations;
+  final List<Transformation> cupertinoTransformationOrder;
   final CropAspectRatio? forcedAspectRatio;
   final List<CropShapeType> showGestureHandlesOn;
   final Locale locale;
@@ -28,6 +38,7 @@ class CropSettings {
   CropSettings copyWith({
     CropShapeFn? cropShapeFn,
     List<Transformation>? enabledTransformations,
+    List<Transformation>? cupertinoTransformationOrder,
     CropAspectRatio? forcedAspectRatio,
     List<CropShapeType>? showGestureHandlesOn,
     Locale? locale,
@@ -36,6 +47,8 @@ class CropSettings {
       cropShapeFn: cropShapeFn ?? this.cropShapeFn,
       enabledTransformations:
           enabledTransformations ?? this.enabledTransformations,
+      cupertinoTransformationOrder:
+          cupertinoTransformationOrder ?? this.cupertinoTransformationOrder,
       forcedAspectRatio: forcedAspectRatio ?? this.forcedAspectRatio,
       showGestureHandlesOn: showGestureHandlesOn ?? this.showGestureHandlesOn,
       locale: locale ?? this.locale,
@@ -46,6 +59,7 @@ class CropSettings {
     return CropSettings(
       cropShapeFn: cropShapeFn,
       enabledTransformations: enabledTransformations,
+      cupertinoTransformationOrder: cupertinoTransformationOrder,
       showGestureHandlesOn: showGestureHandlesOn,
       forcedAspectRatio: null,
       locale: locale,
@@ -189,6 +203,46 @@ class _SettingsModalWidgetState extends State<SettingsModalWidget> {
                   });
                 },
               ),
+            ),
+            const ListTile(
+              enabled: false,
+              title: Text('Cupertino transformation order'),
+              subtitle: Text(
+                'Change the order of the iOS-style transformation controls.',
+              ),
+            ),
+            ReorderableListView.builder(
+              shrinkWrap: true,
+              buildDefaultDragHandles: false,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _settings.cupertinoTransformationOrder.length,
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  final order = [..._settings.cupertinoTransformationOrder];
+                  if (newIndex > oldIndex) {
+                    newIndex -= 1;
+                  }
+
+                  final item = order.removeAt(oldIndex);
+                  order.insert(newIndex, item);
+
+                  _settings = _settings.copyWith(
+                    cupertinoTransformationOrder: order,
+                  );
+                });
+              },
+              itemBuilder: (context, index) {
+                final transformation =
+                    _settings.cupertinoTransformationOrder[index];
+                return ListTile(
+                  key: ValueKey(transformation),
+                  title: Text(transformation.toString()),
+                  trailing: ReorderableDragStartListener(
+                    index: index,
+                    child: const Icon(Icons.drag_handle),
+                  ),
+                );
+              },
             ),
             const ListTile(
               enabled: false,

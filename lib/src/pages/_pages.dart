@@ -2,7 +2,6 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 export 'cupertino_pages.dart';
 export 'material_pages.dart';
@@ -20,6 +19,7 @@ Future<CropImageResult?> showAdaptiveImageCropper(
   CropShapeFn? cropPathFn,
   List<CropAspectRatio?>? allowedAspectRatios,
   List<Transformation>? enabledTransformations,
+  List<Transformation>? cupertinoTransformationOrder,
   Object? heroTag,
   bool shouldPopAfterCrop = true,
   Locale? locale,
@@ -37,6 +37,7 @@ Future<CropImageResult?> showAdaptiveImageCropper(
         cropPathFn: cropPathFn,
         allowedAspectRatios: allowedAspectRatios,
         enabledTransformations: enabledTransformations,
+        transformationOrder: cupertinoTransformationOrder,
         heroTag: heroTag,
         shouldPopAfterCrop: shouldPopAfterCrop,
         locale: locale,
