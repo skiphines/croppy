@@ -162,6 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 cropPathFn: _cropSettings.cropShapeFn,
                 showLoadingIndicatorOnSubmit: false,
                 enabledTransformations: _cropSettings.enabledTransformations,
+                transformationOrder: _cropSettings.cupertinoTransformationOrder,
                 allowedAspectRatios: _cropSettings.forcedAspectRatio != null
                     ? [_cropSettings.forcedAspectRatio!]
                     : null,

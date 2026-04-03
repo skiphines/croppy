@@ -9,6 +9,7 @@ class CupertinoImageTransformationToolbar extends StatefulWidget {
     super.key,
     required this.controller,
     this.gesturePadding = 16.0,
+    this.transformationOrder,
   });
 
   final CroppableImageController controller;
@@ -16,23 +17,55 @@ class CupertinoImageTransformationToolbar extends StatefulWidget {
   /// Must match the [gesturePadding] used by the viewport so that homography
   /// handle coordinates are computed correctly.
   final double gesturePadding;
+  final List<Transformation>? transformationOrder;
 
   @override
   State<CupertinoImageTransformationToolbar> createState() =>
       _CupertinoImageTransformationToolbarState();
 }
 
-enum _Knob {
-  rotateZ,
-  rotateY,
-  rotateX,
-  stretchX,
-  stretchY,
-  homography,
+enum _Knob { rotateZ, rotateY, rotateX, stretchX, stretchY, homography }
+
+@visibleForTesting
+List<Transformation> normalizeCupertinoTransformationOrder({
+  required List<Transformation> enabledTransformations,
+  List<Transformation>? transformationOrder,
+}) {
+  const defaultOrder = [
+    Transformation.rotateZ,
+    Transformation.rotateX,
+    Transformation.rotateY,
+    Transformation.homography,
+    Transformation.stretchX,
+    Transformation.stretchY,
+  ];
+
+  final enabledSupportedTransformations =
+      defaultOrder.where(enabledTransformations.contains).toSet();
+
+  final orderedTransformations = <Transformation>[];
+
+  for (final transformation in [...?transformationOrder, ...defaultOrder]) {
+    if (enabledSupportedTransformations.contains(transformation) &&
+        !orderedTransformations.contains(transformation)) {
+      orderedTransformations.add(transformation);
+    }
+  }
+
+  return orderedTransformations;
 }
 
 class _CupertinoImageTransformationToolbarState
     extends State<CupertinoImageTransformationToolbar> {
+  static const Map<Transformation, _Knob> _transformationToKnob = {
+    Transformation.rotateZ: _Knob.rotateZ,
+    Transformation.rotateX: _Knob.rotateX,
+    Transformation.rotateY: _Knob.rotateY,
+    Transformation.stretchX: _Knob.stretchX,
+    Transformation.stretchY: _Knob.stretchY,
+    Transformation.homography: _Knob.homography,
+  };
+
   late _Knob? _activeKnob;
   late final List<_Knob> _knobs;
 
@@ -40,22 +73,23 @@ class _CupertinoImageTransformationToolbarState
   void initState() {
     super.initState();
 
-    _knobs = [
-      if (widget.controller.isTransformationEnabled(Transformation.rotateZ))
-        _Knob.rotateZ,
-      if (widget.controller.isTransformationEnabled(Transformation.rotateX))
-        _Knob.rotateX,
-      if (widget.controller.isTransformationEnabled(Transformation.rotateY))
-        _Knob.rotateY,
-      if (widget.controller.isTransformationEnabled(Transformation.stretchX))
-        _Knob.stretchX,
-      if (widget.controller.isTransformationEnabled(Transformation.stretchY))
-        _Knob.stretchY,
-      if (widget.controller.isTransformationEnabled(Transformation.homography))
-        _Knob.homography,
-    ];
+    _knobs = _resolveKnobs();
 
     _activeKnob = _knobs.isNotEmpty ? _knobs.first : null;
+  }
+
+  List<_Knob> _resolveKnobs() {
+    return normalizeCupertinoTransformationOrder(
+      enabledTransformations: widget.controller.enabledTransformations,
+      transformationOrder: widget.transformationOrder,
+    ).map((transformation) => _transformationToKnob[transformation]!).toList();
+  }
+
+  _Knob _fallbackKnob() {
+    return _knobs.firstWhere(
+      (knob) => knob != _Knob.homography,
+      orElse: () => _Knob.homography,
+    );
   }
 
   void _selectKnob(_Knob knob) {
@@ -167,26 +201,15 @@ class _CupertinoImageTransformationToolbarState
                 gesturePadding: widget.gesturePadding,
               );
               widget.controller.onDeactivateHomographyCorrection();
-              final fallback = _knobs.firstWhere(
-                (k) => k != _Knob.homography,
-                orElse: () => _Knob.rotateZ,
-              );
-              setState(() => _activeKnob = fallback);
+              setState(() => _activeKnob = _fallbackKnob());
             },
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Text(
-              l10n.applyLabel,
-              style: TextStyle(color: primaryColor),
-            ),
+            child: Text(l10n.applyLabel, style: TextStyle(color: primaryColor)),
           ),
           CupertinoButton(
             onPressed: () {
               widget.controller.onDeactivateHomographyCorrection();
-              final fallback = _knobs.firstWhere(
-                (k) => k != _Knob.homography,
-                orElse: () => _Knob.rotateZ,
-              );
-              setState(() => _activeKnob = fallback);
+              setState(() => _activeKnob = _fallbackKnob());
             },
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Text(l10n.cancelLabel),
@@ -198,10 +221,10 @@ class _CupertinoImageTransformationToolbarState
     return const SizedBox.shrink();
   }
 
-  List<Widget> _buildKnobs(BuildContext context) {
-    return [
-      if (widget.controller.isTransformationEnabled(Transformation.rotateZ))
-        _CupertinoRotationKnobWidget(
+  Widget _buildKnob(BuildContext context, _Knob knob) {
+    switch (knob) {
+      case _Knob.rotateZ:
+        return _CupertinoRotationKnobWidget(
           key: const Key('rotateZ'),
           notifier: widget.controller.rotationZNotifier,
           extent: 45.0,
@@ -211,9 +234,9 @@ class _CupertinoImageTransformationToolbarState
           inactiveChild: const CupertinoStraightenIcon(
             color: CupertinoColors.white,
           ),
-        ),
-      if (widget.controller.isTransformationEnabled(Transformation.rotateX))
-        _CupertinoRotationKnobWidget(
+        );
+      case _Knob.rotateX:
+        return _CupertinoRotationKnobWidget(
           key: const Key('rotateX'),
           notifier: widget.controller.rotationXNotifier,
           extent: 30.0,
@@ -224,9 +247,9 @@ class _CupertinoImageTransformationToolbarState
           inactiveChild: const CupertinoPerspectiveXIcon(
             color: CupertinoColors.white,
           ),
-        ),
-      if (widget.controller.isTransformationEnabled(Transformation.rotateY))
-        _CupertinoRotationKnobWidget(
+        );
+      case _Knob.rotateY:
+        return _CupertinoRotationKnobWidget(
           key: const Key('rotateY'),
           notifier: widget.controller.rotationYNotifier,
           extent: 30.0,
@@ -236,9 +259,9 @@ class _CupertinoImageTransformationToolbarState
           inactiveChild: const CupertinoPerspectiveYIcon(
             color: CupertinoColors.white,
           ),
-        ),
-      if (widget.controller.isTransformationEnabled(Transformation.stretchX))
-        _CupertinoStretchKnobWidget(
+        );
+      case _Knob.stretchX:
+        return _CupertinoStretchKnobWidget(
           key: const Key('stretchX'),
           notifier: widget.controller.scaleXNotifier,
           isActive: _activeKnob == _Knob.stretchX,
@@ -247,9 +270,9 @@ class _CupertinoImageTransformationToolbarState
           inactiveChild: const CupertinoStretchXIcon(
             color: CupertinoColors.white,
           ),
-        ),
-      if (widget.controller.isTransformationEnabled(Transformation.stretchY))
-        _CupertinoStretchKnobWidget(
+        );
+      case _Knob.stretchY:
+        return _CupertinoStretchKnobWidget(
           key: const Key('stretchY'),
           notifier: widget.controller.scaleYNotifier,
           isActive: _activeKnob == _Knob.stretchY,
@@ -258,14 +281,18 @@ class _CupertinoImageTransformationToolbarState
           inactiveChild: const CupertinoStretchYIcon(
             color: CupertinoColors.white,
           ),
-        ),
-      if (widget.controller.isTransformationEnabled(Transformation.homography))
-        _CupertinoHomographyKnobWidget(
+        );
+      case _Knob.homography:
+        return _CupertinoHomographyKnobWidget(
           key: const Key('homography'),
           isActive: _activeKnob == _Knob.homography,
           onSelected: () => _selectKnob(_Knob.homography),
-        ),
-    ];
+        );
+    }
+  }
+
+  List<Widget> _buildKnobs(BuildContext context) {
+    return _knobs.map((knob) => _buildKnob(context, knob)).toList();
   }
 
   @override
@@ -381,8 +408,12 @@ class _CupertinoImageTransformationToolbarKnobsState
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: widget.children
-            .map((v) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0), child: v))
+            .map(
+              (v) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: v,
+              ),
+            )
             .toList(),
       ),
     );
