@@ -3,7 +3,7 @@
 * Added a **homography correction** tool to the Cupertino cropper. Four draggable corner handles let you map any quadrilateral region of the image to a rectangle, correcting perspective distortion in a single step. The correction is stored in `CroppableImageData.perspectiveCorrectionMatrix` and is undone by the existing Reset button.
 * Added **Stretch Horizontal** and **Stretch Vertical** tools to the Cupertino cropper. These let you independently scale the image along the X or Y axis to correct for unusual aspect ratios.
 * Added `transformationOrder` (Cupertino) / `cupertinoTransformationOrder` (adaptive) to control the order transformation tools appear in the toolbar, without changing `enabledTransformations`.
-* Bumped `hooks` to `^2.0.0`, `native_toolchain_c` to `^0.19.2`, and `android_libcpp_shared` to `^0.2.1` for compatibility with `hooks` 2.x hosts.
+* Bumped `hooks` to `^2.0.0`, `code_assets` to `^2.1.0`, `native_toolchain_c` to `^0.19.5`, and `android_libcpp_shared` to `^0.3.1` for compatibility with `hooks` 2.x and `code_assets` 2.x hosts.
 
 ## 1.5.3
 
